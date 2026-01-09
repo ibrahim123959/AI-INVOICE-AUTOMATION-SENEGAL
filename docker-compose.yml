@@ -1,0 +1,68 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: saisie_postgres
+    environment:
+      POSTGRES_DB: saisie_auto
+      POSTGRES_USER: dev
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-devpassword}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - saisie_network
+
+  backend:
+    container_name: saisie_backend
+    build: ./backend
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://dev:${POSTGRES_PASSWORD:-devpassword}@postgres:5432/saisie_auto
+      ENVIRONMENT: development
+    depends_on:
+      - postgres
+    networks:
+      - saisie_network
+
+  ml-engine:
+    container_name: saisie_ml_engine
+    build: ./ml-engine
+    command: uvicorn server.main:app --host 0.0.0.0 --port 8001 --reload
+    volumes:
+      - ./ml-engine:/app
+    ports:
+      - "8001:8001"
+    environment:
+      ENVIRONMENT: development
+    networks:
+      - saisie_network
+
+  frontend:
+    container_name: saisie_frontend
+    build: ./frontend
+    command: npm run dev -- --host 0.0.0.0
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    environment:
+      # Le frontend est consommé depuis le navigateur host
+      # En prod ou full docker, cette valeur changera
+      VITE_API_URL: http://localhost:8000
+    networks:
+      - saisie_network
+
+volumes:
+  postgres_data:
+
+networks:
+  saisie_network:
+    driver: bridge
