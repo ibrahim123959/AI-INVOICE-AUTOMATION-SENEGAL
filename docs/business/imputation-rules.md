@@ -1,0 +1,1 @@
+# Règles métier pour imputation comptes
