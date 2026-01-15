@@ -69,7 +69,7 @@ L'IA suggère, l'humain décide. Aucune écriture comptable n'est créée sans v
 
 ## 🏛️ Architecture Globale
 
-
+```
 saisie-auto-factures/
 │
 ├── README.md                              # Présentation projet, quick start, liens docs
@@ -353,7 +353,7 @@ saisie-auto-factures/
     │   └── feature_request.md
     │
     └── pull_request_template.md           # Template PRs standardisé
-
+```
 ### Vue d'Ensemble des Composants
 
 ```
