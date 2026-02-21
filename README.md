@@ -538,28 +538,28 @@ saisie-auto-factures/
 ┌───────────────────────────────────────────────────────────────────────────┐
 │ ÉTAPE 6 : EXPORT SAGE                                                     │
 ├───────────────────────────────────────────────────────────────────────────┤
-│ Utilisateur : Click "Exporter vers Sage" (période mois)                  │
-│ Frontend → Backend : POST /api/v1/exports/fec                            │
+│ Utilisateur : Click "Exporter vers Sage" (période mois)                   │
+│ Frontend → Backend : POST /api/v1/exports/fec                             │
 │                      Body: {period: "2024-11"}                            │
 │                                                                           │
-│ Backend → Integration/Sage :                                             │
-│   FEC Generator : Génère fichier FEC (pipe-separated)                    │
-│   Pour chaque facture validée :                                          │
-│     ACH|Achats|001|20241115|6054|Électricité|...|150000.00|0.00|...     │
-│     ACH|Achats|001|20241115|44566|TVA déduct|...|27000.00|0.00|...      │
-│     ACH|Achats|001|20241115|401|Fournisseur|...|0.00|177000.00|...      │
+│ Backend → Integration/Sage :                                              │
+│   FEC Generator : Génère fichier FEC (pipe-separated)                     │
+│   Pour chaque facture validée :                                           │
+│     ACH|Achats|001|20241115|6054|Électricité|...|150000.00|0.00|...       │
+│     ACH|Achats|001|20241115|44566|TVA déduct|...|27000.00|0.00|...        │
+│     ACH|Achats|001|20241115|401|Fournisseur|...|0.00|177000.00|...        │
 │                                                                           │
-│   FEC Validator : Vérifie format DGFiP                                   │
-│     ✓ Débits = Crédits (177000 = 177000)                                │
-│     ✓ Dates format YYYYMMDD                                              │
-│     ✓ Comptes existent dans SYSCOHADA                                    │
+│   FEC Validator : Vérifie format DGFiP                                    │
+│     ✓ Débits = Crédits (177000 = 177000)                                  │
+│     ✓ Dates format YYYYMMDD                                               │
+│     ✓ Comptes existent dans SYSCOHADA                                     │
 │                                                                           │
-│ Backend → Storage : Sauvegarde FEC_202411.txt                            │
-│ Backend → BDD : INSERT sage_export (filename, invoice_count, date)       │
-│ Backend → Frontend : {export_id, download_url}                           │
+│ Backend → Storage : Sauvegarde FEC_202411.txt                             │
+│ Backend → BDD : INSERT sage_export (filename, invoice_count, date)        │
+│ Backend → Frontend : {export_id, download_url}                            │
 │                                                                           │
-│ Frontend : Télécharge fichier FEC                                        │
-│ Utilisateur : Importe dans Sage Sari                                     │
+│ Frontend : Télécharge fichier FEC                                         │
+│ Utilisateur : Importe dans Sage Sari                                      │
 └───────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -588,39 +588,39 @@ saisie-auto-factures/
 │                          ML ENGINE (Service isolé)                      │
 ├─────────────────────────────────────────────────────────────────────────┤
 │                                                                         │
-│  ┌────────────────────────────────────────────────────────────┐        │
-│  │ MODÈLE : paraphrase-multilingual-MiniLM-L12-v2             │        │
-│  │ • Pré-entraîné Hugging Face (50+ langues)                  │        │
-│  │ • 120 MB, 384 dimensions embeddings                        │        │
-│  │ • Spécialisé détection similarité sémantique               │        │
-│  └────────────────────────────────────────────────────────────┘        │
+│  ┌────────────────────────────────────────────────────────────┐         │
+│  │ MODÈLE : paraphrase-multilingual-MiniLM-L12-v2             │         │
+│  │ • Pré-entraîné Hugging Face (50+ langues)                  │         │
+│  │ • 120 MB, 384 dimensions embeddings                        │         │
+│  │ • Spécialisé détection similarité sémantique               │         │
+│  └────────────────────────────────────────────────────────────┘         │
 │                                                                         │
 │  Au démarrage :                                                         │
-│  ┌────────────────────────────────────────────────────────────┐        │
-│  │ 1. Charge plan comptable SYSCOHADA (500 comptes)           │        │
-│  │ 2. Encode tous labels comptes → cache embeddings           │        │
-│  │    Ex: "6054 - Électricité" → [0.23, -0.45, ..., 384]     │        │
-│  │ 3. Stocke en mémoire (accès <1ms)                          │        │
-│  └────────────────────────────────────────────────────────────┘        │
+│  ┌────────────────────────────────────────────────────────────┐         │
+│  │ 1. Charge plan comptable SYSCOHADA (500 comptes)           │         │
+│  │ 2. Encode tous labels comptes → cache embeddings           │         │
+│  │    Ex: "6054 - Électricité" → [0.23, -0.45, ..., 384]      │         │
+│  │ 3. Stocke en mémoire (accès <1ms)                          │         │
+│  └────────────────────────────────────────────────────────────┘         │
 │                                                                         │
 │  À chaque requête /match :                                              │
-│  ┌────────────────────────────────────────────────────────────┐        │
+│  ┌────────────────────────────────────────────────────────── ──┐        │
 │  │ 1. Encode description facture → embedding query             │        │
-│  │    "Consommation électrique nov" → [0.24, -0.43, ...]     │        │
+│  │    "Consommation électrique nov" → [0.24, -0.43, ...]       │        │
 │  │                                                             │        │
-│  │ 2. Compare avec 500 embeddings cache (similarité cosinus)  │        │
-│  │    similarity = dot(query, account) / (||q|| × ||a||)      │        │
+│  │ 2. Compare avec 500 embeddings cache (similarité cosinus)   │        │
+│  │    similarity = dot(query, account) / (||q|| × ||a||)       │        │
 │  │                                                             │        │
-│  │ 3. Trie par score décroissant                              │        │
-│  │    6054 → 0.92, 6055 → 0.28, 6261 → 0.12, ...             │        │
+│  │ 3. Trie par score décroissant                               │        │
+│  │    6054 → 0.92, 6055 → 0.28, 6261 → 0.12, ...               │        │
 │  │                                                             │        │
-│  │ 4. Retourne top K (default 3)                              │        │
-│  └────────────────────────────────────────────────────────────┘        │
+│  │ 4. Retourne top K (default 3)                               │        │
+│  └────────────────────────────────────────────────────────── ──┘        │
 │                                                                         │
 │  Performance :                                                          │
-│  • Encode : 10-15ms (CPU), 3-5ms (GPU)                                │
-│  • Match 500 comptes : 30-40ms                                         │
-│  • Total : ~50ms (acceptable temps réel)                               │
+│  • Encode : 10-15ms (CPU), 3-5ms (GPU)                                  │
+│  • Match 500 comptes : 30-40ms                                          │
+│  • Total : ~50ms (acceptable temps réel)                                │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -628,57 +628,57 @@ saisie-auto-factures/
 
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
-│ CYCLE D'AMÉLIORATION CONTINUE                                       │
+│ CYCLE D'AMÉLIORATION CONTINUE                                        │
 ├──────────────────────────────────────────────────────────────────────┤
 │                                                                      │
-│  Semaine 1-4 : Collecte données                                     │
-│  ┌────────────────────────────────────────────────────────┐         │
-│  │ • Utilisateurs valident/corrigent 500+ factures        │         │
-│  │ • Backend enregistre dans learning_events :            │         │
-│  │   - Description facture                                │         │
-│  │   - Compte suggéré par IA                              │         │
-│  │   - Compte validé par humain                           │         │
-│  │   - Contexte (fournisseur, montant, date)              │         │
-│  └────────────────────────────────────────────────────────┘         │
+│  Semaine 1-4 : Collecte données                                      │
+│  ┌────────────────────────────────────────────────────────┐          │
+│  │ • Utilisateurs valident/corrigent 500+ factures        │          │
+│  │ • Backend enregistre dans learning_events :            │          │
+│  │   - Description facture                                │          │
+│  │   - Compte suggéré par IA                              │          │
+│  │   - Compte validé par humain                           │          │
+│  │   - Contexte (fournisseur, montant, date)              │          │
+│  └────────────────────────────────────────────────────────┘          │
 │                                                                      │
-│  Semaine 5 : Préparation dataset                                    │
-│  ┌────────────────────────────────────────────────────────┐         │
+│  Semaine 5 : Préparation dataset                                     │
+│  ┌────────────────────────────────────────────────────────┐          │
 │  │ • Export learning_events → training/syscohada_pairs.json│         │
 │  │ • Format paires (description, compte correct) :         │         │
 │  │   [                                                     │         │
-│  │     {"text1": "VIR OM 771234567", "text2": "6241", "label": 1},│
-│  │     {"text1": "VIR OM 771234567", "text2": "6261", "label": 0} │
+│  │     {"text1": "VIR OM 771234567", "text2": "6241", "label": 1},   │
+│  │     {"text1": "VIR OM 771234567", "text2": "6261", "label": 0}    │
 │  │   ]                                                     │         │
 │  │ • Split 80% train, 20% validation                       │         │
-│  └────────────────────────────────────────────────────────┘         │
+│  └────────────────────────────────────────────────────────┘          │
 │                                                                      │
-│  Semaine 6 : Fine-tuning                                            │
-│  ┌────────────────────────────────────────────────────────┐         │
+│  Semaine 6 : Fine-tuning                                             │
+│  ┌────────────────────────────────────────────────────────┐          │
 │  │ • Script : ml-engine/training/fine_tune.py              │         │
 │  │ • Epochs : 3-5                                          │         │
 │  │ • Loss : ContrastiveLoss (rapproche paires similaires)  │         │
 │  │ • Durée : 2-4h (GPU NVIDIA T4)                          │         │
 │  │ • Output : modèle fine-tuné saisie-auto-v1.1            │         │
-│  └────────────────────────────────────────────────────────┘         │
+│  └────────────────────────────────────────────────────────┘          │
 │                                                                      │
-│  Semaine 7 : Évaluation                                             │
-│  ┌────────────────────────────────────────────────────────┐         │
+│  Semaine 7 : Évaluation                                              │
+│  ┌────────────────────────────────────────────────────────┐          │
 │  │ • Compare modèle base vs fine-tuné                      │         │
 │  │ • Métriques :                                           │         │
-│  │   - Top-1 accuracy : 78% → 86% (+8%)                   │         │
-│  │   - Top-3 accuracy : 92% → 96% (+4%)                   │         │
+│  │   - Top-1 accuracy : 78% → 86% (+8%)                    │         │
+│  │   - Top-3 accuracy : 92% → 96% (+4%)                    │         │
 │  │ • Si amélioration >5% : déploiement production          │         │
-│  └────────────────────────────────────────────────────────┘         │
+│  └────────────────────────────────────────────────────────┘          │
 │                                                                      │
-│  Semaine 8 : Déploiement nouveau modèle                             │
-│  ┌────────────────────────────────────────────────────────┐         │
+│  Semaine 8 : Déploiement nouveau modèle                              │
+│  ┌────────────────────────────────────────────────────────┐          │
 │  │ • Upload modèle vers ML Engine                          │         │
 │  │ • Canary deployment (5% trafic nouveau modèle)          │         │
 │  │ • Si metrics OK : 100% trafic                           │         │
 │  │ • Rollback automatique si dégradation                   │         │
-│  └────────────────────────────────────────────────────────┘         │
+│  └────────────────────────────────────────────────────────┘          │
 │                                                                      │
-│  → Répéter cycle tous les 3 mois                                    │
+│  → Répéter cycle tous les 3 mois                                     │
 └──────────────────────────────────────────────────────────────────────┘
 ```
 
