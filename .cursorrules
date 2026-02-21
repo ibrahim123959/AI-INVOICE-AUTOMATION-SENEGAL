@@ -1,0 +1,121 @@
+cat > .cursorrules << 'EOF'
+# Règles de développement Saisie Auto AI
+
+## Architecture
+- Backend: Python + FastAPI, structure modulaire stricte
+- ML Engine: Service isolé, Sentence Transformers
+- OCR: Multi-vendors avec abstraction (Google/AWS/Paddle)
+- Frontend: React + Vite, functional components only
+- Database: PostgreSQL avec SQLAlchemy ORM
+
+## Conventions de code
+
+### Python
+- Type hints OBLIGATOIRES partout
+- Docstrings format Google pour toutes les fonctions
+- Max line length: 100 caractères
+- Use Pydantic pour validation données
+- Async/await pour toutes les opérations I/O
+- Imports organisés: stdlib, third-party, local
+- Nom fichiers: snake_case.py
+- Nom classes: PascalCase
+- Nom fonctions/variables: snake_case
+
+### JavaScript/React
+- Functional components ONLY (pas de class components)
+- Hooks pour state management
+- PropTypes ou TypeScript (future)
+- Nommage: PascalCase pour composants, camelCase pour fonctions
+- Un composant par fichier
+- Destructure props
+- Use const par défaut
+
+### SQL/Database
+- Migrations Alembic pour tout changement schema
+- Jamais de raw SQL dans le code (use SQLAlchemy)
+- Indexes sur foreign keys
+- Constraints au niveau DB
+
+## Structure commits (STRICT)
+Format: `type(scope): description courte`
+
+Types autorisés:
+- feat: nouvelle fonctionnalité
+- fix: correction bug
+- docs: documentation seulement
+- refactor: refactoring sans changer fonctionnalité
+- test: ajout/modification tests
+- chore: tâches maintenance (deps, config)
+- perf: amélioration performance
+
+Exemples:
+✅ feat(ocr): add Google Document AI adapter
+✅ fix(duplicate-detector): correct amount comparison logic
+✅ docs(api): add endpoint documentation for imputations
+❌ updated stuff
+❌ fixes
+
+## Tests
+- Coverage minimum: 80% pour backend
+- Tests unitaires OBLIGATOIRES pour:
+  * OCR Adapters
+  * Duplicate Detector
+  * Imputation Engine
+  * Learning Controller
+  * Validators
+- Tests d'intégration pour flux complets
+- Fixtures dans tests/fixtures/
+- Mock external APIs (OCR providers, ML Engine)
+
+## Sécurité
+- JAMAIS de secrets dans le code
+- TOUJOURS valider inputs utilisateur (Pydantic)
+- TOUJOURS logger actions pour audit trail
+- Sanitize avant insertion DB
+- Use parameterized queries
+- HTTPS only en production
+
+## Performance
+- Cache ML embeddings en mémoire
+- Use async for I/O operations
+- Batch database operations
+- Index database properly (supplier, date, status)
+- Limit OCR API calls (rate limits)
+
+## Logging
+- Use loguru pour backend
+- Log levels appropriés:
+  * DEBUG: détails développement
+  * INFO: opérations normales
+  * WARNING: situations inhabituelles
+  * ERROR: erreurs récupérables
+  * CRITICAL: erreurs système
+- Toujours logger: upload, extraction, suggestion, validation
+
+## Documentation
+- README.md à jour
+- Docstrings pour toutes fonctions publiques
+- Comments pour logique complexe uniquement
+- API documentation auto-générée (FastAPI)
+
+## Git Workflow
+1. Branch depuis develop
+2. Commits atomiques et descriptifs
+3. PR vers develop avec description complète
+4. Review requise avant merge
+5. Tests CI passés obligatoires
+6. Squash commits si >5 commits similaires
+
+## SYSCOHADA Specific
+- Toujours référencer plan comptable officiel
+- Mapping rules documentées
+- Validation montants cohérents (HT + TVA = TTC)
+- Format FEC conforme DGFiP
+
+## ML/AI Specific
+- Toujours inclure confidence scores
+- Log tous les appels ML Engine
+- Top 3 suggestions minimum
+- Explainability: pourquoi ce compte suggéré?
+- Learning events pour amélioration continue
+EOF

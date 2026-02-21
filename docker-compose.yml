@@ -1,52 +1,69 @@
-version: "3.8"
+
+version: '3.8'
 
 services:
+  # PostgreSQL Database
   postgres:
     image: postgres:15-alpine
-    container_name: saisie_postgres
     environment:
-      POSTGRES_DB: saisie_auto
-      POSTGRES_USER: dev
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-devpassword}
+      POSTGRES_DB: saisie_auto_db
+      POSTGRES_USER: saisie_dev
+      POSTGRES_PASSWORD: dev_password_change_in_prod
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    networks:
-      - saisie_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U saisie_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
+  # FastAPI Backend
   backend:
-    container_name: saisie_backend
-    build: ./backend
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     volumes:
       - ./backend:/app
+      - backend_uploads:/app/data/uploads
+      - backend_reports:/app/data/reports
     ports:
       - "8000:8000"
     environment:
-      DATABASE_URL: postgresql://dev:${POSTGRES_PASSWORD:-devpassword}@postgres:5432/saisie_auto
-      ENVIRONMENT: development
+      DATABASE_URL: postgresql://saisie_dev:dev_password_change_in_prod@postgres:5432/saisie_auto_db
+      ML_ENGINE_URL: http://ml-engine:8001
+      OCR_PROVIDER: google  # google, aws, paddle
+      GOOGLE_APPLICATION_CREDENTIALS: ${GOOGLE_APPLICATION_CREDENTIALS}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      LOG_LEVEL: INFO
     depends_on:
-      - postgres
-    networks:
-      - saisie_network
+      postgres:
+        condition: service_healthy
 
+  # ML Engine (Sentence Transformers)
   ml-engine:
-    container_name: saisie_ml_engine
-    build: ./ml-engine
-    command: uvicorn server.main:app --host 0.0.0.0 --port 8001 --reload
+    build:
+      context: ./ml-engine
+      dockerfile: Dockerfile
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8001 --reload
     volumes:
       - ./ml-engine:/app
+      - ml_models:/app/models
     ports:
       - "8001:8001"
     environment:
-      ENVIRONMENT: development
-    networks:
-      - saisie_network
+      MODEL_NAME: paraphrase-multilingual-MiniLM-L12-v2
+      CACHE_DIR: /app/models
+      LOG_LEVEL: INFO
 
+  # React Frontend
   frontend:
-    container_name: saisie_frontend
-    build: ./frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     command: npm run dev -- --host 0.0.0.0
     volumes:
       - ./frontend:/app
@@ -54,15 +71,13 @@ services:
     ports:
       - "5173:5173"
     environment:
-      # Le frontend est consommé depuis le navigateur host
-      # En prod ou full docker, cette valeur changera
-      VITE_API_URL: http://localhost:8000
-    networks:
-      - saisie_network
+      VITE_API_BASE_URL: http://localhost:8000/api/v1
+    depends_on:
+      - backend
 
 volumes:
   postgres_data:
+  backend_uploads:
+  backend_reports:
+  ml_models:
 
-networks:
-  saisie_network:
-    driver: bridge

@@ -1,0 +1,1 @@
+# Cache embeddings précalculés

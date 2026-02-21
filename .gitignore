@@ -12,10 +12,13 @@ build/
 dist/
 *.egg-info/
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
 
 # Environment variables
 .env
 .env.local
+.env.*.local
 *.env
 
 # IDEs
@@ -25,27 +28,43 @@ dist/
 *.swo
 *~
 .DS_Store
+.cursor/
 
-# Jupyter
-.ipynb_checkpoints
-
-# Data & Models
-ml-engine/data/
-*.h5
-*.pkl
-*.pth
-*.onnx
-
-# Uploads & Temp
-backend/uploads/
-backend/temp/
-*.pdf
-*.jpg
-*.png
+# Database
+*.db
+*.sqlite
+*.sqlite3
 
 # Logs
 *.log
 logs/
+*.log.*
+
+# Uploads & Generated Files
+backend/data/uploads/*
+backend/data/reports/*
+!backend/data/uploads/.gitkeep
+!backend/data/reports/.gitkeep
+
+# ML Models
+ml-engine/models/fine-tuned/*
+!ml-engine/models/fine-tuned/.gitkeep
+*.pt
+*.pth
+*.onnx
+
+# Temporary files
+*.tmp
+temp/
+tmp/
+
+# Test coverage
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+.hypothesis/
 
 # Node
 node_modules/
@@ -54,21 +73,36 @@ yarn-debug.log*
 yarn-error.log*
 dist/
 .cache/
+.parcel-cache/
+
+# Frontend build
+frontend/dist/
+frontend/build/
 
 # Docker
 *.pid
 *.seed
 *.pid.lock
 
-# Coverage
-htmlcov/
-.coverage
-.coverage.*
-coverage.xml
-*.cover
+# OS
+Thumbs.db
+Desktop.ini
 
-# Secrets
+# Secrets & Keys
 secrets/
 *.key
 *.pem
+*.p12
+*.crt
+credentials.json
+
+# Large files (not in git)
+*.pdf
+*.docx
+*.xlsx
+*.csv
+
+# OCR test data
+ocr-adapters/tests/sample_invoices/*
+!ocr-adapters/tests/sample_invoices/.gitkeep
 EOF
