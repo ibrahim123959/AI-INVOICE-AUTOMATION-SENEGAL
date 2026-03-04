@@ -1,0 +1,51 @@
+name: ML Engine CI
+
+on:
+  pull_request:
+    branches: [develop, main]
+    paths:
+      - 'ml-engine/**'
+      - '.github/workflows/ml-engine-ci.yml'
+  push:
+    branches: [develop, main]
+    paths:
+      - 'ml-engine/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-ml-${{ hashFiles('ml-engine/requirements.txt') }}
+    
+    - name: Install dependencies
+      run: |
+        cd ml-engine
+        pip install -r requirements.txt
+    
+    - name: Run linting
+      run: |
+        cd ml-engine
+        flake8 app/ --max-line-length=100
+    
+    - name: Run tests
+      run: |
+        cd ml-engine
+        pytest --cov=app --cov-report=xml
+    
+    - name: Upload coverage
+      uses: codecov/codecov-action@v3
+      with:
+        files: ./ml-engine/coverage.xml
+        flags: ml-engine

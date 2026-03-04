@@ -16,7 +16,7 @@ Ce dossier contient des scripts autonomes pour opérations d'administration, mai
 └──────────────┬──────────────────────────┘
                ↓
 ┌──────────────────────────────────────────┐
-│    ► SCRIPTS ◄ (Ce module)              │
+│    ► SCRIPTS ◄ (Ce module)               │
 │                                          │
 │  One-shot operations :                   │
 │  - Setup BDD                             │

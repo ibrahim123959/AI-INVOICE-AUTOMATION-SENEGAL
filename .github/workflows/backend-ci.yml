@@ -1,0 +1,68 @@
+name: Backend CI
+
+on:
+  pull_request:
+    branches: [develop, main]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-ci.yml'
+  push:
+    branches: [develop, main]
+    paths:
+      - 'backend/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: test_db
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_pass
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements.txt') }}
+    
+    - name: Install dependencies
+      run: |
+        cd backend
+        pip install -r requirements.txt
+    
+    - name: Run linting
+      run: |
+        cd backend
+        flake8 app/ --max-line-length=100
+    
+    - name: Run tests
+      env:
+        DATABASE_URL: postgresql://test_user:test_pass@localhost:5432/test_db
+      run: |
+        cd backend
+        pytest --cov=app --cov-report=xml
+    
+    - name: Upload coverage
+      uses: codecov/codecov-action@v3
+      with:
+        files: ./backend/coverage.xml
+        flags: backend

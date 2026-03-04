@@ -14,7 +14,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U saisie_dev"]
+      test: ["CMD-SHELL", "pg_isready -U saisie_dev -d saisie_auto_db"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -63,6 +63,7 @@ services:
   frontend:
     build:
       context: ./frontend
+      target: development
       dockerfile: Dockerfile
     command: npm run dev -- --host 0.0.0.0
     volumes:
@@ -80,4 +81,5 @@ volumes:
   backend_uploads:
   backend_reports:
   ml_models:
+
 

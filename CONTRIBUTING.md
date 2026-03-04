@@ -1,15 +1,14 @@
 
 ### **Fichier: CONTRIBUTING.md**
 
-```bash
-cat > CONTRIBUTING.md << 'EOF'
-# Guide de Contribution - Saisie Auto AI
+### Guide de Contribution - Saisie Auto AI
 
-Merci de contribuer à Saisie Auto AI ! Ce guide explique comment travailler efficacement sur le projet.
+**Merci de contribuer à Saisie Auto AI ! Ce guide explique comment travailler efficacement sur le projet.**
 
 ## 🚀 Setup Initial
 
 ### 1. Fork et Clone
+
 ```bash
 # Fork sur GitHub puis clone
 git clone https://github.com/ibrahim123959/AI-INVOICE-AUTOMATION-SENEGAL.git
